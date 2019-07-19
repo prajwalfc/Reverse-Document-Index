@@ -4,6 +4,7 @@
 
 
 from pyspark import SparkContext
+from pyspark.sql import SparkSession
 
 def functionName (x):
     import re
@@ -19,14 +20,9 @@ if __name__=='__main__':
     from operator import itemgetter, attrgetter
     sc = SparkContext()
     rdd =  sc.wholeTextFiles("data/*")
+    spark = SparkSession(sc)
     word_location_index = rdd.mapPartitions(functionName).reduceByKey(lambda x,y:tuple(set(x+y))).zipWithIndex()
     word_code = word_location_index.map(lambda x: (x[0][0],x[1]))
-    code_location = word_location_index.map(lambda x: (x[1],x[0][1]))
-    word_code.saveAsTextFile("output/dict")
+    code_location = word_location_index.map(lambda x: (x[1],list(x[0][1])))
     code_location.saveAsTextFile("output/word_index")
-
-
-
-
-
-
+    word_code.saveAsTextFile("output/dict")
